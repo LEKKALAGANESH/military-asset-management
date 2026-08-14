@@ -31,10 +31,9 @@ api.interceptors.response.use(
       }
     }
 
-    // This API always answers `{ error: "<message>" }`. An object here came from the platform
-    // instead — Vercel's own 404 is `{ error: { code, message } }` — which means the request
-    // never reached the function. Assigning that object to `error.message` renders an object as
-    // a React child and blanks the page, hiding the very failure it should be reporting.
+    // This API always answers `{ error: "<message>" }`. An object means the platform answered
+    // instead (Vercel's 404 is `{ error: { code, message } }`) and the request never reached the
+    // function. Passing that object on renders an object as a React child and blanks the page.
     const body = error.response?.data?.error;
     const serverMessage = typeof body === 'string'
       ? body

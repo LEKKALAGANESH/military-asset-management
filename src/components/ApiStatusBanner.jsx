@@ -3,11 +3,8 @@ import api from '../services/api.js';
 import Banner from './Banner.jsx';
 
 /**
- * Reports a broken deployment before the user spends a password on it.
- *
- * `/api/health` distinguishes the two failures that look identical from the sign-in form — the
- * function never answering, and the function answering against a database with no schema — so
- * each gets the fix that actually applies instead of "Invalid username or password."
+ * From the sign-in form a dead API and an empty database both look like a rejected password, and
+ * they need different fixes. `/api/health` separates them before the user spends a password.
  */
 export default function ApiStatusBanner() {
   const [problem, setProblem] = useState('');
@@ -15,15 +12,13 @@ export default function ApiStatusBanner() {
   useEffect(() => {
     let cancelled = false;
 
-    api.get('/health')
-      .then(() => !cancelled && setProblem(''))
-      .catch((error) => {
-        if (cancelled) return;
-        const schema = error.response?.data?.schema;
-        setProblem(schema && schema !== 'ready'
-          ? 'The database is reachable but has no schema. Apply it with `npm run db:reset`.'
-          : error.message);
-      });
+    api.get('/health').catch((error) => {
+      if (cancelled) return;
+      const schema = error.response?.data?.schema;
+      setProblem(schema && schema !== 'ready'
+        ? 'The database is reachable but has no schema. Apply it with `npm run db:reset`.'
+        : error.message);
+    });
 
     return () => { cancelled = true; };
   }, []);

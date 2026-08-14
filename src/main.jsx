@@ -8,7 +8,7 @@ import './index.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Outside the router, so a failure in routing or auth still renders something. */}
+    {/* Outside the router, so a failure in routing or auth is still caught. */}
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>

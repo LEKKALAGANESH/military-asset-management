@@ -316,7 +316,7 @@ demonstrated without retyping.
 
 ## Local development
 
-`vercel dev` reproduces the platform routing but needs a linked project and a login, so two
+`vercel dev` reproduces the platform routing but needs a linked project and a login, so these
 scripts run the same exported app over plain HTTP:
 
 ```bash
@@ -326,17 +326,18 @@ npm run dev:api    # terminal 2 — the same app Vercel invokes, on :4000
 npm run dev        # terminal 3 — Vite on :5173, proxying /api to :4000
 ```
 
-`db:local` runs **PGlite** — Postgres compiled to WebAssembly — behind the real wire protocol, so
-`pg` connects to it exactly as it connects to Neon and the schema, transactions and advisory locks
-all behave. No Docker, no Postgres install; `npm install` is the whole prerequisite. Data lives in
-`pgdata/` (gitignored) — delete it for a clean slate. Point `.env` at it with:
+`db:local` serves **PGlite** — Postgres compiled to WebAssembly — over the real wire protocol, so
+`pg` connects to it exactly as it connects to a hosted database and the advisory locks, ledger
+triggers and transactions are the real ones. No Docker, no Postgres install; `npm install` is the
+whole prerequisite. Data lives in `pgdata/` (gitignored) — delete it for a clean slate. Point
+`.env` at it with:
 
 ```ini
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
 DATABASE_SSL=false
 ```
 
-For a deployed database, use a hosted Postgres instead — see [Prerequisites](#prerequisites).
+Deployments need a hosted Postgres — see [Prerequisites](#prerequisites).
 
 The dev proxy **strips the browser's `Origin` header** so local development matches the
 deployed same-origin shape. Without it, dev would be the only environment needing a CORS

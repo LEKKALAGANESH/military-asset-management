@@ -1,11 +1,7 @@
 /**
- * A real Postgres on localhost:5432 with nothing to install — PGlite is Postgres compiled to
- * WASM, and this exposes it over the actual wire protocol, so `pg` connects to it exactly as it
- * connects to Neon. The schema, the seed, the advisory locks and the ledger triggers all run
- * unchanged; this is not a mock.
- *
- * It exists so the barrier to running this project is `npm install`, not "install Postgres" or
- * "install Docker" — and so the database path can be verified before a hosted database exists.
+ * Postgres on localhost with nothing to install. PGlite is Postgres compiled to WASM, served here
+ * over the real wire protocol, so `pg` connects to it exactly as it connects to a hosted database
+ * — the schema, transactions and advisory locks are the real ones, not a mock.
  *
  * Data lives in ./pgdata (gitignored). Delete that directory for a clean slate.
  */
@@ -13,6 +9,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 
 const DATA_DIR = './pgdata';
+// Override when a real Postgres already holds 5432.
 const PORT = Number(process.env.PGLITE_PORT ?? 5432);
 
 const db = await PGlite.create(DATA_DIR);
@@ -20,19 +17,22 @@ const server = new PGLiteSocketServer({
   db,
   port: PORT,
   host: '127.0.0.1',
-  // The schema and seed scripts each open their own pool, and the API holds one alongside them.
+  // Schema and seed each open their own pool, and the API holds one alongside them.
   maxConnections: 10,
 });
 
 await server.start();
 
-console.log(`Postgres (PGlite) listening on 127.0.0.1:${PORT}, data in ${DATA_DIR}`);
-console.log('\nPut this in .env, then run `npm run db:reset`:\n');
-console.log('  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres');
-console.log('  DATABASE_SSL=false\n');
-console.log('Ctrl-C to stop.');
+console.log(`Postgres (PGlite) on 127.0.0.1:${PORT}, data in ${DATA_DIR}
 
-// Without this the WASM database can be torn down mid-write and leave pgdata corrupt.
+Put this in .env, then run \`npm run db:reset\`:
+
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:${PORT}/postgres
+  DATABASE_SSL=false
+
+Ctrl-C to stop.`);
+
+// Closing in order; a kill mid-write leaves pgdata corrupt.
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, async () => {
     await server.stop();
