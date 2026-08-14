@@ -55,3 +55,6 @@ desktop.ini
 # Deploy
 .vercel/
 .netlify/
+
+# Local tooling scratch space, including git worktrees created inside the repo
+.claude/
