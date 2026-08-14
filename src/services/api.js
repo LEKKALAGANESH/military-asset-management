@@ -1,11 +1,20 @@
 import axios from 'axios';
+import demoAdapter from './demoApi.js';
 
 export const TOKEN_KEY = 'mams.token';
+
+/**
+ * The deployed build answers its own requests from the browser — see demoApi.js. Point
+ * VITE_API_BASE_URL at a running API to use the Postgres server under server/ instead; the
+ * request and response shapes are the same either way.
+ */
+const useDemoStore = !import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
+  ...(useDemoStore ? { adapter: demoAdapter } : {}),
 });
 
 api.interceptors.request.use((config) => {
