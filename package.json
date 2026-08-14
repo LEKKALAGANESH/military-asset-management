@@ -12,6 +12,7 @@
     "dev:api": "node --watch dev-server.js",
     "build": "vite build",
     "preview": "vite preview",
+    "db:local": "node scripts/local-db.js",
     "db:schema": "node server/db/apply-schema.js",
     "db:seed": "node server/db/seed.js",
     "db:reset": "npm run db:schema && npm run db:seed",
@@ -34,6 +35,8 @@
     "recharts": "^2.15.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.5",
+    "@electric-sql/pglite-socket": "^0.2.8",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",

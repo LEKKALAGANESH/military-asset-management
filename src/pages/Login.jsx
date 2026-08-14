@@ -1,6 +1,7 @@
 import { Loader2, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import ApiStatusBanner from '../components/ApiStatusBanner.jsx';
 import Banner from '../components/Banner.jsx';
 import Field from '../components/Field.jsx';
 import { LoadingState } from '../components/States.jsx';
@@ -54,6 +55,7 @@ export default function Login() {
         </div>
 
         <form onSubmit={submit} className="card space-y-4 p-6" noValidate>
+          <ApiStatusBanner />
           <Banner tone="error" message={error} />
 
           <Field label="Username" required>

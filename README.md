@@ -320,9 +320,23 @@ demonstrated without retyping.
 scripts run the same exported app over plain HTTP:
 
 ```bash
-npm run dev:api    # terminal 1 — the same app Vercel invokes, on :4000
-npm run dev        # terminal 2 — Vite on :5173, proxying /api to :4000
+npm run db:local   # terminal 1 — Postgres on :5432, nothing to install
+npm run db:reset   #              schema + demo data
+npm run dev:api    # terminal 2 — the same app Vercel invokes, on :4000
+npm run dev        # terminal 3 — Vite on :5173, proxying /api to :4000
 ```
+
+`db:local` runs **PGlite** — Postgres compiled to WebAssembly — behind the real wire protocol, so
+`pg` connects to it exactly as it connects to Neon and the schema, transactions and advisory locks
+all behave. No Docker, no Postgres install; `npm install` is the whole prerequisite. Data lives in
+`pgdata/` (gitignored) — delete it for a clean slate. Point `.env` at it with:
+
+```ini
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
+DATABASE_SSL=false
+```
+
+For a deployed database, use a hosted Postgres instead — see [Prerequisites](#prerequisites).
 
 The dev proxy **strips the browser's `Origin` header** so local development matches the
 deployed same-origin shape. Without it, dev would be the only environment needing a CORS
@@ -332,6 +346,7 @@ allowlist — a config knob that exists purely to paper over a difference from p
 |---|---|
 | `npm run dev` | Vite dev server (:5173) |
 | `npm run dev:api` | Local API host (:4000) |
+| `npm run db:local` | Postgres (PGlite) on :5432 — no install required |
 | `npm run build` | SPA → `dist/` |
 | `npm run db:schema` | Applies `server/db/schema.sql` (no `psql` needed) |
 | `npm run db:seed` | Demo data; asserts no negative stock |
