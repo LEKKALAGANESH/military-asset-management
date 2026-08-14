@@ -4,7 +4,7 @@
 
 **Track vehicles, weapons and ammunition across multiple bases — with role-based access, atomic cross-base transfers, and an audit trail that cannot disagree with the data.**
 
-Packaged for **Vercel**: the React SPA ships as static assets and the Express API runs as a single Node serverless function, both on the same origin.
+Packaged for **Vercel**: the React SPA ships as static assets, and the same Express API runs either as a single Node serverless function over Postgres, or entirely in the browser so the demo needs no database at all.
 
 [![Vercel](https://img.shields.io/badge/Vercel-serverless-000000?logo=vercel&logoColor=white)](https://vercel.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -22,6 +22,7 @@ Packaged for **Vercel**: the React SPA ships as static assets and the Express AP
 
 ## Table of contents
 
+- [Two builds, one application](#two-builds-one-application)
 - [Why this design](#why-this-design)
 - [Features](#features)
 - [Screenshots](#screenshots)
@@ -38,6 +39,29 @@ Packaged for **Vercel**: the React SPA ships as static assets and the Express AP
 - [Testing](#testing)
 - [Project structure](#project-structure)
 - [License](#license)
+
+---
+
+## Two builds, one application
+
+The deployed demo runs **without a server or a database**. An axios adapter answers every request
+from `localStorage`, seeding the demonstration dataset the first time a browser opens the page —
+so a reviewer on a new device gets a populated dashboard immediately, with nothing to provision
+and nothing to sign up for.
+
+| | Demo build (default) | Postgres build |
+|---|---|---|
+| Data | `localStorage`, seeded on first load | Postgres, `npm run db:reset` |
+| API | `src/services/demoApi.js`, in the browser | `server/`, one Vercel function |
+| Enable | nothing to set | `VITE_API_BASE_URL=/api` + `DATABASE_URL`, `JWT_SECRET` |
+
+Both speak the same endpoints, and the balance arithmetic is *imported* from `server/services/`
+rather than reimplemented, so the two agree by construction.
+
+**The demo build shapes the view by role; it does not enforce it.** Every record and every
+password reaches the browser, so its role checks are a demonstration of the model, not a security
+boundary. The Postgres build is the one that enforces — server-side RBAC, transactional transfers
+under an advisory lock, and an append-only audit trail. Read `server/` for the real thing.
 
 ---
 
