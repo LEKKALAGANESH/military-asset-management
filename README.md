@@ -139,7 +139,7 @@ than Edge.
 Browser ──► https://your-app.vercel.app
               ├── /                 →  static SPA (CDN)
               ├── /transfers        →  SPA fallback rewrite
-              └── /api/*            →  api/[...path].js  (Node function)
+              └── /api/*            →  api/handler.js     (Node function)
                                           └──► Postgres (pooled)
 ```
 
@@ -432,13 +432,18 @@ and "unreachable" surface as 503 naming the cause rather than a generic 500.
 module-level `throw`s surface in Vercel logs as an opaque `FUNCTION_INVOCATION_FAILED` with no
 indication of which variable is wrong.
 
-### The catch-all filename is load-bearing
+### One function, reached by rewrite rather than by filename
 
-`api/[...path].js`, not `api/index.js`. A plain `index.js` only matches `/api` exactly, and
-routing the rest through a `vercel.json` rewrite rewrites `req.url` — which breaks the Express
-router underneath. A catch-all is invoked with the original URL intact, so `app.use('/api', …)`
-matches exactly as it does locally. An Express app is already a `(req, res)` handler, so
-`api/[...path].js` is a one-line re-export with no adapter.
+`[...path]` catch-all filenames are a Next.js convention and do not carry over here. Deployed as
+`api/[...path].js`, the platform matched a single segment only: `/api/health` reached the function
+while `/api/auth/login` returned a `NOT_FOUND` that never invoked it — every nested route was
+unreachable while the shallow ones looked fine.
+
+So the route is declared instead of inferred. `vercel.json` rewrites `/api/:path*` to the one
+function and carries the original path in `__vpath`; `api/handler.js` restores it onto `req.url`
+before Express sees the request, since Express routes on `req.url` and would otherwise resolve
+everything to `/api/handler`. Query strings survive, and the handler leaves `req.url` alone when
+`__vpath` is absent so a direct invocation still behaves.
 
 ---
 
@@ -578,7 +583,7 @@ rollback on an overdraft, base-scope enforcement, concurrent transfers, and audi
 ## Project structure
 
 ```
-├── api/[...path].js      The one function — re-exports the Express app
+├── api/handler.js        The one function — every /api/* rewrites here
 ├── dev-server.js         Local HTTP host for the same app
 ├── server/
 │   ├── app.js            Express app, exported not started

@@ -8,7 +8,7 @@ guarantees the whole system is built on.
 
 | Approach | Cold start | Verdict |
 |---|---|---|
-| **A. One Node function running the existing Express app** (`api/[...path].js`) | ~150–250 ms | **Chosen.** Every middleware, route, guard and test carries over unchanged. One function, one bundle. |
+| **A. One Node function running the existing Express app** (`api/handler.js`) | ~150–250 ms | **Chosen.** Every middleware, route, guard and test carries over unchanged. One function, one bundle. |
 | B. One Vercel function per route | ~120 ms | Rejected. ~15 files each re-composing the auth → RBAC → scope chain by hand. Enormous duplication and regression risk on code that is already verified. |
 | C. Edge runtime (Hono + Neon HTTP driver) | ~15 ms | **Rejected on correctness.** The Edge runtime has no TCP sockets, forcing the Neon HTTP driver, which cannot hold an interactive transaction. `BEGIN … pg_advisory_xact_lock … COMMIT` is the core of the transfer logic. Trading atomic transfers for 150 ms is a bad trade for an asset ledger. |
 
@@ -41,7 +41,7 @@ honestly, with Vercel Firewall — a platform feature, no code — as the real c
   someone points a separately-hosted frontend at the API.
 
 ## Lanes (disjoint file ownership)
-1. **Entry + config** — `api/[...path].js`, `dev-server.js`, `server/app.js`, `server/config/{env,db}.js`
+1. **Entry + config** — `api/handler.js`, `dev-server.js`, `server/app.js`, `server/config/{env,db}.js`
 2. **Project config** — `package.json`, `vercel.json`, `vite.config.js`, `.env.example`, `.gitignore`
 3. **Carried over unchanged** — controllers, routes, services, utils, middlewares, `src/**`
 4. **Tests** — `server/tests/*` (import path updated to `../app.js`)
