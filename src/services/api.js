@@ -31,7 +31,16 @@ api.interceptors.response.use(
       }
     }
 
-    error.message = error.response?.data?.error
+    // This API always answers `{ error: "<message>" }`. An object here came from the platform
+    // instead — Vercel's own 404 is `{ error: { code, message } }` — which means the request
+    // never reached the function. Assigning that object to `error.message` renders an object as
+    // a React child and blanks the page, hiding the very failure it should be reporting.
+    const body = error.response?.data?.error;
+    const serverMessage = typeof body === 'string'
+      ? body
+      : body && `API unavailable (${status}) — the request never reached the server.`;
+
+    error.message = serverMessage
       || (error.code === 'ECONNABORTED' ? 'The request timed out. Please try again.' : null)
       || (error.response ? `Request failed (${status}).` : 'Cannot reach the server. Is the API running?');
 
