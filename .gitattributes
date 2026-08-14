@@ -1,0 +1,8 @@
+# Normalise line endings so a clone on Linux/macOS doesn't show every file as modified.
+* text=auto eol=lf
+
+# Binary assets git must never try to diff or convert.
+*.png binary
+*.jpg binary
+*.webm binary
+*.mp4 binary
